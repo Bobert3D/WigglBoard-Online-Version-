@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WigglBoard V1 Online Rel! - Draggable & Categorized</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    /* Keyboard Glow Styling */
+    .key-active {
+      background-color: rgba(34, 197, 94, 0.25) !important;
+      border-color: rgba(34, 197, 94, 1) !important;
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+      color: #22c55e !important;
+      transform: scale(0.96);
+    }
+    .rgb-wave .key-active {
+      background-color: var(--active-rgb, rgba(239, 68, 68, 0.25)) !important;
+      border-color: var(--active-border, rgba(239, 68, 68, 1)) !important;
+      box-shadow: 0 0 15px var(--active-rgb);
+      color: #fff !important;
+    }
+    /* Hide scrollbar across the dashboard */
+    ::-webkit-scrollbar { display: none; }
+    
+    /* Category Accordion Header Arrow Animation */
+    .category-header svg {
+      transition: transform 0.2s ease;
+    }
+    .category-header.collapsed svg {
+      transform: rotate(-90deg);
+    }
+    .category-content.collapsed {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-black text-stone-100 min-h-screen relative overflow-hidden font-mono select-none">
+
+  <!-- ================= CANVAS BACKDROP GRAPHICS LAYERS ================= -->
+  <canvas id="matrixCanvas" class="fixed inset-0 z-0 pointer-events-none opacity-30"></canvas>
+  <canvas id="physicsCanvas" class="fixed inset-0 z-10 pointer-events-none"></canvas>
+
+  <!-- ================= INTERACTIVE FULL KEYBOARD MATRIX ARCHITECTURE ================= -->
+  <div class="fixed inset-0 pointer-events-none z-20 flex flex-col items-center justify-center p-4 opacity-40">
+    <div id="keyboardWrapper" class="w-full max-w-5xl bg-zinc-950/30 p-5 rounded-2xl border border-zinc-900/60 backdrop-blur-xs flex flex-col gap-2 transition-all duration-300">
+      
+      <!-- Row 1: Function Row / Escape -->
+      <div class="grid grid-cols-20 gap-1 h-9 text-[10px]">
+        <div id="Escape" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Esc</div>
+        <div class="col-span-1"></div>
+        <div id="F1" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">F1</div>
+        <div id="F2" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">F2</div>
+        <div id="F3" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">F3</div>
+        <div id="F4" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">F4</div>
+        <div class="col-span-0.5"></div>
+        <div id="F5" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">F5</div>
+        <div id="F6" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">F6</div>
+        <div id="F7" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">F7</div>
+        <div id="F8" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">F8</div>
+        <div class="col-span-0.5"></div>
+        <div id="F9" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">F9</div>
+        <div id="F10" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">F10</div>
+        <div id="F11" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">F11</div>
+        <div id="F12" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">F12</div>
+        <div class="col-span-0.5"></div>
+        <div id="PrintScreen" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">PrtSc</div>
+        <div id="ScrollLock" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Scllk</div>
+        <div id="Pause" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Pause</div>
+      </div>
+
+      <!-- Row 2: Alphanumeric Number Row -->
+      <div class="grid grid-cols-20 gap-1 h-11 text-xs">
+        <div id="Backquote" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">~</div>
+        <div id="Digit1" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">1</div>
+        <div id="Digit2" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">2</div>
+        <div id="Digit3" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">3</div>
+        <div id="Digit4" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">4</div>
+        <div id="Digit5" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">5</div>
+        <div id="Digit6" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">6</div>
+        <div id="Digit7" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">7</div>
+        <div id="Digit8" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">8</div>
+        <div id="Digit9" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">9</div>
+        <div id="Digit0" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">0</div>
+        <div id="Minus" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">-</div>
+        <div id="Equal" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">=</div>
+        <div id="Backspace" class="col-span-2 key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Backspace</div>
+        <div class="col-span-0.5"></div>
+        <div id="Insert" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Ins</div>
+        <div id="Home" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Home</div>
+        <div id="PageUp" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">PgUp</div>
+      </div>
+
+      <!-- Row 3: QWERTY Row -->
+      <div class="grid grid-cols-20 gap-1 h-11 text-xs">
+        <div id="Tab" class="col-span-1.5 key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Tab</div>
+        <div id="KeyQ" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Q</div>
+        <div id="KeyW" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">W</div>
+        <div id="KeyE" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">E</div>
+        <div id="KeyR" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">R</div>
+        <div id="KeyT" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">T</div>
+        <div id="KeyY" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Y</div>
+        <div id="KeyU" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">U</div>
+        <div id="KeyI" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">I</div>
+        <div id="KeyO" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">O</div>
+        <div id="KeyP" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">P</div>
+        <div id="BracketLeft" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">[</div>
+        <div id="BracketRight" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">]</div>
+        <div id="Backslash" class="col-span-1.5 key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">\</div>
+        <div class="col-span-0.5"></div>
+        <div id="Delete" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Del</div>
+        <div id="End" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">End</div>
+        <div id="PageDown" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">PgDn</div>
+      </div>
+
+      <!-- Row 4: ASDF Home Row -->
+      <div class="grid grid-cols-20 gap-1 h-11 text-xs">
+        <div id="CapsLock" class="col-span-1.75 key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Caps</div>
+        <div id="KeyA" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">A</div>
+        <div id="KeyS" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">S</div>
+        <div id="KeyD" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">D</div>
+        <div id="KeyF" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">F</div>
+        <div id="KeyG" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">G</div>
+        <div id="KeyH" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">H</div>
+        <div id="KeyJ" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">J</div>
+        <div id="KeyK" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">K</div>
+        <div id="KeyL" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">L</div>
+        <div id="Semicolon" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">;</div>
+        <div id="Quote" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">'</div>
+        <div id="Enter" class="col-span-2.25 key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Enter</div>
+        <div class="col-span-4"></div>
+      </div>
+
+      <!-- Row 5: ZXCV Bottom Row -->
+      <div class="grid grid-cols-20 gap-1 h-11 text-xs">
+        <div id="ShiftLeft" class="col-span-2.25 key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Shift</div>
+        <div id="KeyZ" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Z</div>
+        <div id="KeyX" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">X</div>
+        <div id="KeyC" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">C</div>
+        <div id="KeyV" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">V</div>
+        <div id="KeyB" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">B</div>
+        <div id="KeyN" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">N</div>
+        <div id="KeyM" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">M</div>
+        <div id="Comma" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">,</div>
+        <div id="Period" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">.</div>
+        <div id="Slash" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">/</div>
+        <div id="ShiftRight" class="col-span-2.75 key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Shift</div>
+        <div class="col-span-1.5"></div>
+        <div id="ArrowUp" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">↑</div>
+        <div class="col-span-1"></div>
+      </div>
+
+      <!-- Row 6: Modifier Modifiers Track -->
+      <div class="grid grid-cols-20 gap-1 h-11 text-[11px]">
+        <div id="ControlLeft" class="col-span-1.5 key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Ctrl</div>
+        <div id="MetaLeft" class="col-span-1.25 key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Win</div>
+        <div id="AltLeft" class="col-span-1.25 key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Alt</div>
+        <div id="Space" class="col-span-6.5 key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair font-bold text-zinc-400 text-xs">[ SPACEBAR DROP MODULE ]</div>
+        <div id="AltRight" class="col-span-1.25 key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Alt</div>
+        <div id="MetaRight" class="col-span-1.25 key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Win</div>
+        <div id="ContextMenu" class="col-span-1 key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Menu</div>
+        <div id="ControlRight" class="col-span-1.5 key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">Ctrl</div>
+        <div class="col-span-0.5"></div>
+        <div id="ArrowLeft" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">←</div>
+        <div id="ArrowDown" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">↓</div>
+        <div id="ArrowRight" class="key border border-zinc-800 bg-zinc-900/40 flex items-center justify-center rounded pointer-events-auto cursor-crosshair">→</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= DRAGGABLE & CATEGORIZED SETTINGS PANEL ================= -->
+  <aside id="draggableSidebar" class="absolute top-10 left-10 w-80 bg-zinc-950/95 border border-zinc-900 shadow-2xl z-40 rounded-2xl flex flex-col pointer-events-auto backdrop-blur-md overflow-hidden" style="max-height: 85vh;">
+    <!-- Title / Drag Handle Element -->
+    <div id="dragHandle" class="bg-zinc-900/80 px-4 py-3 flex items-center justify-between border-b border-zinc-800 cursor-move active:bg-zinc-900">
+      <div class="flex items-center gap-2">
+        <!-- Visual Grid Drag Bars Indicator Icon -->
+        <svg class="w-4 h-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        <span class="text-xs font-black tracking-widest text-zinc-300 uppercase"> WigglBoard Physics Engine Controls!</span>
+      </div>
+      <div class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
+    </div>
+
+    <!-- Scrollable Panel Configuration Body Layout -->
+    <div class="p-4 flex flex-col gap-3 overflow-y-auto flex-1">
+      
+      <!-- CATEGORY 1: RENDER PROFILES -->
+      <div class="border border-zinc-900 rounded-xl overflow-hidden bg-zinc-900/10">
+        <button class="category-header w-full px-3 py-2.5 bg-zinc-900/30 flex items-center justify-between text-xs font-bold text-zinc-400 tracking-wider uppercase cursor-pointer hover:bg-zinc-900/50">
+          <span>1. Backlight Themes</span>
+          <svg class="w-3 h-3 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        <div class="category-content p-3 flex flex-col gap-3">
+          <div class="grid grid-cols-2 gap-2 text-[11px]">
+            <button id="modeMatrix" class="bg-green-950/40 text-green-400 border border-green-800/80 rounded-lg py-1.5 font-bold cursor-pointer transition">Matrix Core</button>
+            <button id="modeRGB" class="bg-zinc-900 text-zinc-500 border border-zinc-800 rounded-lg py-1.5 font-bold cursor-pointer transition">RGB Spectrum</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CATEGORY 2: KINEMATICS & VECTORS -->
+      <div class="border border-zinc-900 rounded-xl overflow-hidden bg-zinc-900/10">
+        <button class="category-header w-full px-3 py-2.5 bg-zinc-900/30 flex items-center justify-between text-xs font-bold text-zinc-400 tracking-wider uppercase cursor-pointer hover:bg-zinc-900/50">
+          <span>2. Kinematics Engines</span>
+          <svg class="w-3 h-3 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        <div class="category-content p-3 flex flex-col gap-4">
+          <!-- Gravity -->
+          <div class="flex flex-col gap-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-zinc-500">Vertical Gravity</span>
+              <span id="valGravity" class="text-green-400 font-bold">0.40</span>
+            </div>
+            <input id="sldGravity" type="range" min="0" max="1.5" step="0.05" value="0.40" class="w-full accent-green-500 cursor-pointer bg-zinc-800 h-1 rounded-lg">
+          </div>
+          <!-- Wind Tunnel -->
+          <div class="flex flex-col gap-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-zinc-500">Crosswind Velocity</span>
+              <span id="valWind" class="text-green-400 font-bold">0.00</span>
+            </div>
+            <input id="sldWind" type="range" min="-0.5" max="0.5" step="0.02" value="0.00" class="w-full accent-green-500 cursor-pointer bg-zinc-800 h-1 rounded-lg">
+          </div>
+          <!-- Restitution -->
+          <div class="flex flex-col gap-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-zinc-500">Restitution Coefficient</span>
+              <span id="valBounce" class="text-green-400 font-bold">0.75</span>
+            </div>
+            <input id="sldBounce" type="range" min="0" max="1.1" step="0.05" value="0.75" class="w-full accent-green-500 cursor-pointer bg-zinc-800 h-1 rounded-lg">
+          </div>
+        </div>
+      </div>
+
+      <!-- CATEGORY 3: DROP PARAMETERS -->
+      <div class="border border-zinc-900 rounded-xl overflow-hidden bg-zinc-900/10">
+        <button class="category-header w-full px-3 py-2.5 bg-zinc-900/30 flex items-center justify-between text-xs font-bold text-zinc-400 tracking-wider uppercase cursor-pointer hover:bg-zinc-900/50">
+          <span>3. Rigid Body Properties</span>
+          <svg class="w-3 h-3 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        <div class="category-content p-3 flex flex-col gap-4">
+          <!-- Mass Scale Size -->
+          <div class="flex flex-col gap-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-zinc-500">Mass / Structural Bounds</span>
+              <span id="valSize" class="text-green-400 font-bold">14px</span>
+            </div>
+            <input id="sldSize" type="range" min="5" max="45" step="1" value="14" class="w-full accent-green-500 cursor-pointer bg-zinc-800 h-1 rounded-lg">
+          </div>
+          <!-- Drop Geometry Shape -->
+          <div class="flex flex-col gap-1">
+            <span class="text-[11px] text-zinc-500">Structural Object Model Geometry</span>
+            <select id="selShape" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-1.5 px-2 text-xs text-zinc-400 focus:outline-hidden focus:border-green-500 cursor-pointer">
+              <option value="circle">Spherical Vector (Circle)</option>
+              <option value="square">Quadrilateral Prism (Square)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- CATEGORY 4: DIGITAL WATERFALLS -->
+      <div class="border border-zinc-900 rounded-xl overflow-hidden bg-zinc-900/10">
+        <button class="category-header w-full px-3 py-2.5 bg-zinc-900/30 flex items-center justify-between text-xs font-bold text-zinc-400 tracking-wider uppercase cursor-pointer hover:bg-zinc-900/50">
+          <span>4. Code Stream Renders</span>
+          <svg class="w-3 h-3 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        <div class="category-content p-3 flex flex-col gap-4">
+          <!-- Rain Tail Speed Persistence -->
+          <div class="flex flex-col gap-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-zinc-500">Rain Trail Clear Persistence</span>
+              <span id="valTrail" class="text-green-400 font-bold">0.06</span>
+            </div>
+            <input id="sldTrail" type="range" min="0.01" max="0.35" step="0.01" value="0.06" class="w-full accent-green-500 cursor-pointer bg-zinc-800 h-1 rounded-lg">
+          </div>
+          <!-- Hex Color Picker Matrix Grid -->
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="text-zinc-500">Digital Waterfall Matrix Chromatics</span>
+            <input id="clrMatrix" type="color" value="#22c55e" class="bg-transparent border-0 w-7 h-7 rounded cursor-pointer">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Actions Tab Footer -->
+    <div class="p-3 bg-zinc-900/20 border-t border-zinc-900 flex flex-col">
+      <button id="btnClear" class="w-full bg-zinc-900 hover:bg-red-950/20 text-zinc-400 hover:text-red-400 border border-zinc-800 hover:border-red-900/40 text-[11px] font-bold py-2 rounded-xl transition cursor-pointer">
+        Purge Physics Engine Simulation Arrays
+      </button>
+    </div>
+  </aside>
+
+
+  <!-- ================= APPLICATIONS PIPELINE ENGINE FUNCTIONS ================= -->
+  <script>
+    // --- APP CORE SETTING OBJECT CONFIGURATION ---
+    let appSettings = {
+      themeProfile: 'matrix',
+      gravityForce: 0.40,
+      windForce: 0.00,
+      restitution: 0.75,
+      spawnRadius: 14,
+      spawnGeometry: 'circle',
+      trailPersistence: 0.06,
+      matrixColorHex: '#22c55e'
+    };
+
+    // --- ACCORDION CATEGORIZATION CONTROLLER LOGIC ---
+    document.querySelectorAll('.category-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const content = header.nextElementSibling;
+        header.classList.toggle('collapsed');
+        content.classList.toggle('collapsed');
+      });
+    });
+
+    // --- GLOBAL DRAGGABLE POSITION INTERCEPT ENGINE ---
+    const sidebar = document.getElementById('draggableSidebar');
+    const dragHandle = document.getElementById('dragHandle');
+    let isDragging = false;
+    let startX, startY, initialX, initialY;
+
+    dragHandle.addEventListener('pointerdown', (e) => {
+      // Prevent input item fields selection during drag operations
+      if(e.target.closest('select, input, button')) return;
+      isDragging = true;
+      dragHandle.setPointerCapture(e.pointerId);
+      
+      startX = e.clientX;
+      startY = e.clientY;
+      
+      const computedStyle = window.getComputedStyle(sidebar);
+      initialX = parseInt(computedStyle.left);
+      initialY = parseInt(computedStyle.top);
+    });
+
+    dragHandle.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      
+      let targetX = initialX + dx;
+      let targetY = initialY + dy;
+      
+      // Keep boundaries inside screen frame constraints
+      targetX = Math.max(10, Math.min(window.innerWidth - sidebar.offsetWidth - 10, targetX));
+      targetY = Math.max(10, Math.min(window.innerHeight - sidebar.offsetHeight - 10, targetY));
+      
+      sidebar.style.left = targetX + 'px';
+      sidebar.style.top = targetY + 'px';
+    });
+
+    const stopDragging = (e) => {
+      if (isDragging) {
+        isDragging = false;
+        dragHandle.releasePointerCapture(e.pointerId);
+      }
+    };
+    dragHandle.addEventListener('pointerup', stopDragging);
+    dragHandle.addEventListener('pointercancel', stopDragging);
+
+    // --- VIEW INTERFACE CONNECTIONS & LISTENER DATA ROUTINGS ---
+    const sldGravity = document.getElementById('sldGravity'); const valGravity = document.getElementById('valGravity');
+    const sldWind = document.getElementById('sldWind'); const valWind = document.getElementById('valWind');
+    const sldBounce = document.getElementById('sldBounce'); const valBounce = document.getElementById('valBounce');
+    const sldSize = document.getElementById('sldSize'); const valSize = document.getElementById('valSize');
+    const selShape = document.getElementById('selShape');
+    const sldTrail = document.getElementById('sldTrail'); const valTrail = document.getElementById('valTrail');
+    const clrMatrix = document.getElementById('clrMatrix');
+    const modeMatrix = document.getElementById('modeMatrix'); const modeRGB = document.getElementById('modeRGB');
+    const btnClear = document.getElementById('btnClear');
+
+    sldGravity.addEventListener('input', (e) => { appSettings.gravityForce = parseFloat(e.target.value); valGravity.textContent = parseFloat(e.target.value).toFixed(2); });
+    sldWind.addEventListener('input', (e) => { appSettings.windForce = parseFloat(e.target.value); valWind.textContent = parseFloat(e.target.value).toFixed(2); });
+    sldBounce.addEventListener('input', (e) => { appSettings.restitution = parseFloat(e.target.value); valBounce.textContent = parseFloat(e.target.value).toFixed(2); });
+    sldSize.addEventListener('input', (e) => { appSettings.spawnRadius = parseInt(e.target.value); valSize.textContent = e.target.value + 'px'; });
+    selShape.addEventListener('change', (e) => { appSettings.spawnGeometry = e.target.value; });
+    sldTrail.addEventListener('input', (e) => { appSettings.trailPersistence = parseFloat(e.target.value); valTrail.textContent = parseFloat(e.target.value).toFixed(2); });
+    clrMatrix.addEventListener('input', (e) => { appSettings.matrixColorHex = e.target.value; });
+
+    modeMatrix.addEventListener('click', () => {
+      appSettings.themeProfile = 'matrix';
+      document.body.classList.remove('rgb-wave');
+      modeMatrix.className = "bg-green-950/40 text-green-400 border border-green-800/80 rounded-lg py-1.5 font-bold cursor-pointer transition";
+      modeRGB.className = "bg-zinc-900 text-zinc-500 border border-zinc-800 rounded-lg py-1.5 font-bold cursor-pointer transition";
+    });
+    modeRGB.addEventListener('click', () => {
+      appSettings.themeProfile = 'rgb';
+      document.body.classList.add('rgb-wave');
+      modeRGB.className = "bg-red-950/40 text-red-400 border border-red-800/80 rounded-lg py-1.5 font-bold cursor-pointer transition";
+      modeMatrix.className = "bg-zinc-900 text-zinc-500 border border-zinc-800 rounded-lg py-1.5 font-bold cursor-pointer transition";
+    });
+
+    // --- GRAPHICS LAYER CONTEXT INITIALIZATIONS ---
+    const mCanvas = document.getElementById('matrixCanvas'); const mCtx = mCanvas.getContext('2d');
+    const pCanvas = document.getElementById('physicsCanvas'); const pCtx = pCanvas.getContext('2d');
+    let activeParticlesArray = [];
+
+    function setupViewportBoundaries() {
+      mCanvas.width = pCanvas.width = window.innerWidth;
+      mCanvas.height = pCanvas.height = window.innerHeight;
+    }
+    setupViewportBoundaries();
+    window.addEventListener('resize', setupViewportBoundaries);
+
+    btnClear.addEventListener('click', () => { activeParticlesArray = []; });
+
+    // --- DATA STREAM WATERFALL RENDER PIPELINE ---
+    const charStrings = "ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀ1023456789X¥$";
+    const matrixChars = charStrings.split("");
+    const fontSize = 14;
+    const streamColumns = Math.floor(window.innerWidth / fontSize) + 5;
+    const matrixDropPointers = Array(streamColumns).fill(1);
+
+    function loopMatrixGraphics() {
+      mCtx.fillStyle = `rgba(0, 0, 0, ${appSettings.trailPersistence})`;
+      mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
+      mCtx.font = fontSize + "px monospace";
+
+      for (let i = 0; i < matrixDropPointers.length; i++) {
+        const glyph = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+        const x = i * fontSize;
+        const y = matrixDropPointers[i] * fontSize;
+
+        if (appSettings.themeProfile === 'matrix') {
+          mCtx.fillStyle = Math.random() > 0.985 ? "#ffffff" : appSettings.matrixColorHex;
+        } else {
+          let runningHue = (x + y + Date.now() / 24) % 360;
+          mCtx.fillStyle = `hsl(${runningHue}, 90%, 60%)`;
+          document.documentElement.style.setProperty('--active-rgb', `rgba(255,255,255,0.2)`);
+        }
+
+        mCtx.fillText(glyph, x, y);
+
+        if (y > mCanvas.height && Math.random() > 0.98) {
+          matrixDropPointers[i] = 0;
+        }
+        matrixDropPointers[i]++;
+      }
+    }
+    setInterval(loopMatrixGraphics, 33);
+
+    // --- KINEMATICS ENGINE RIGID BODY SIMULATOR MODEL ---
+    class KinematicRigidBody {
+      constructor(x, y, radius, geometry) {
+        this.x = x; this.y = y;
+        this.radius = radius;
+        this.geometry = geometry;
+        this.vx = (Math.random() - 0.5) * 7.5;
+        this.vy = Math.random() * -3.5;
+        this.hue = Math.random() * 360;
+      }
+
+      computeVectors() {
+        this.vy += appSettings.gravityForce;
+        this.vx += appSettings.windForce;
+        
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Ground Deck Edge Impact Calculations
+        if (this.y + this.radius > pCanvas.height) {
+          this.y = pCanvas.height - this.radius;
+          this.vy = -this.vy * appSettings.restitution;
+          this.vx *= 0.975; 
+        }
+        // Left & Right Workspace Border Wall Triggers
+        if (this.x + this.radius > pCanvas.width) {
+          this.x = pCanvas.width - this.radius;
+          this.vx = -this.vx * appSettings.restitution;
+        } else if (this.x - this.radius < 0) {
+          this.x = this.radius;
+          this.vx = -this.vx * appSettings.restitution;
+        }
+      }
+
+      paint(ctx) {
+        ctx.beginPath();
+        if (appSettings.themeProfile === 'matrix') {
+          ctx.fillStyle = appSettings.matrixColorHex;
+          ctx.strokeStyle = '#ffffff';
+        } else {
+          ctx.fillStyle = `hsl(${this.hue}, 90%, 55%)`;
+          ctx.strokeStyle = '#ffffff';
+        }
+
+        if (this.geometry === 'circle') {
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillRect(this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+        }
+        ctx.closePath();
+      }
+    }
+
+    function engineRefreshCycle() {
+      pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+      for (let i = 0; i < activeParticlesArray.length; i++) {
+        activeParticlesArray[i].computeVectors();
+        activeParticlesArray[i].paint(pCtx);
+      }
+      requestAnimationFrame(engineRefreshCycle);
+    }
+    requestAnimationFrame(engineRefreshCycle);
+
+    // --- HARDWARE INTERCEPT MACRO HOOK SYSTEMS ---
+    document.addEventListener('keydown', (e) => {
+      // Glow key modules on screen matching codes
+      const targetElement = document.getElementById(e.code);
+      if (targetElement) targetElement.classList.add('key-active');
+
+      if (e.code === 'Space') {
+        if (document.activeElement.tagName !== 'INPUT') {
+          e.preventDefault();
+        }
+        // Spawn vectors across randomized horizontal track bounds
+        const spawnBoundsX = Math.random() * (pCanvas.width - 200) + 100;
+        activeParticlesArray.push(
+          new KinematicRigidBody(spawnBoundsX, 35, appSettings.spawnRadius, appSettings.spawnGeometry)
+        );
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      const targetElement = document.getElementById(e.code);
+      if (targetElement) targetElement.classList.remove('key-active');
+    });
+
+    // --- MOUSE HOVER MAPPING TO GRAPHIC ILLUMINATION ---
+    document.querySelectorAll('.key').forEach(keyNode => {
+      keyNode.addEventListener('mouseenter', () => {
+        keyNode.classList.add('key-active');
+      });
+      keyNode.addEventListener('mouseleave', () => {
+        // Keep active key highlighted if it's currently pressed physically
+        keyNode.classList.remove('key-active');
+      });
+    });
+  </script>
+</body>
+</html>
